@@ -3,3 +3,7 @@
 # Package Files #
 *.war
 *.ear
+/GSyncJ/nbproject/private/
+/GSyncJ/build/
+/GSyncJ/dist/
+/.project
