@@ -9,6 +9,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import com.google.api.services.drive.model.ChildList;
+import com.google.api.services.drive.model.ChildReference;
 import com.google.api.services.drive.model.File;
 
 import java.io.BufferedReader;
@@ -52,8 +54,14 @@ public class DriveCommandLine {
 
         java.io.File fileContent = new java.io.File("document.txt");
         FileContent mediaContent = new FileContent("text/plain", fileContent);
+        //File file = service.files().insert(body, mediaContent).execute();
+        //System.out.println("File ID: " + file.getId());
+        ChildList list = service.children().list("root").execute();
+        for (ChildReference cr : list.getItems()) {
 
-        File file = service.files().insert(body, mediaContent).execute();
-        System.out.println("File ID: " + file.getId());
+            File f = service.files().get(cr.getId()).execute();
+            System.out.println(f.getTitle());
+            
+        }
     }
 }
