@@ -8,10 +8,12 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.Drive.Apps.List;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.ChildList;
 import com.google.api.services.drive.model.ChildReference;
 import com.google.api.services.drive.model.File;
+import gnomezgrave.gsyncj.local.Storage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,7 +35,6 @@ public class DriveCommandLine {
                 httpTransport, jsonFactory, CLIENT_ID, CLIENT_SECRET, Arrays.asList(DriveScopes.DRIVE))
                 .setAccessType("online")
                 .setApprovalPrompt("auto").build();
-
         String url = flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URI).build();
         System.out.println("Please open the following URL in your browser then type the authorization code:");
         System.out.println("  " + url);
@@ -56,12 +57,7 @@ public class DriveCommandLine {
         FileContent mediaContent = new FileContent("text/plain", fileContent);
         //File file = service.files().insert(body, mediaContent).execute();
         //System.out.println("File ID: " + file.getId());
-        ChildList list = service.children().list("root").execute();
-        for (ChildReference cr : list.getItems()) {
-
-            File f = service.files().get(cr.getId()).execute();
-            System.out.println(f.getTitle());
-            
-        }
+        new Storage().downloadAllFiles(service, "root", "/home/praneeth/GDrive");
     }
+
 }
