@@ -29,10 +29,10 @@ public class Profile implements Serializable {
         this.drive = drive;
     }
 
-    public void sync(){
-        
+    public void sync() {
+
     }
-    
+
     public void loadProfileSettings(String fileName) throws IOException, ClassNotFoundException {
         profileSettings = ProfileSettings.loadProfileSettings(fileName);
     }
@@ -44,31 +44,10 @@ public class Profile implements Serializable {
     }
 
     /**
-     * @return the drive
-     */
-    public Drive getProfile() {
-        return drive;
-    }
-
-    /**
-     * @param profile the drive to set
-     */
-    public void setProfile(Drive profile) {
-        this.drive = profile;
-    }
-
-    /**
      * @return the driveName
      */
-    public String getName() {
+    public String getUserName() {
         return userName;
-    }
-
-    /**
-     * @param name the driveName to set
-     */
-    public void setName(String name) {
-        this.userName = name;
     }
 
     /**
@@ -83,6 +62,13 @@ public class Profile implements Serializable {
      */
     public void setProfileSettings(ProfileSettings profileSettings) {
         this.profileSettings = profileSettings;
+    }
+
+    /**
+     * @return the drive
+     */
+    public Drive getDrive() {
+        return drive;
     }
 
 }

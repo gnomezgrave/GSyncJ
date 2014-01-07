@@ -19,15 +19,15 @@ import java.io.Serializable;
 public class ProfileSettings implements Serializable {
 
     private String filePath;
-    private String key;
+    private String userName;
+    private String profileName;
+    private String syncPath;
 
-    public ProfileSettings(String path) {
-        filePath = path;
-    }
-
-    public ProfileSettings(String path, String key) {
-        this(path);
-        this.key = key;
+    public ProfileSettings(String userName, String profileName, String filePath, String syncPath) {
+        this.userName = userName;
+        this.profileName = profileName;
+        this.filePath = filePath;
+        this.syncPath = syncPath;
     }
 
     public static ProfileSettings loadProfileSettings(String fileName) throws IOException, ClassNotFoundException {
@@ -50,16 +50,16 @@ public class ProfileSettings implements Serializable {
     }
 
     /**
-     * @return the key
+     * @return the filePath
      */
-    public String getKey() {
-        return key;
+    public String getFilePath() {
+        return filePath;
     }
 
     /**
-     * @param key the key to set
+     * @return the syncPath
      */
-    public void setKey(String key) {
-        this.key = key;
+    public String getSyncPath() {
+        return syncPath;
     }
 }

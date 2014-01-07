@@ -5,7 +5,6 @@
  */
 package gnomezgrave.gsyncj.local;
 
-import com.google.api.services.drive.Drive;
 import gnomezgrave.gsyncj.auth.Profile;
 import gnomezgrave.gsyncj.auth.ProfileSettings;
 import gnomezgrave.gsyncj.auth.Settings;
@@ -24,15 +23,23 @@ public class ProfileManagement {
 
     private static Settings settings;
 
-    public static ProfileSettings addProfile(String profileName, String key, String path) throws IOException, ClassNotFoundException {
-        String profileSettingsPath = path + "/." + profileName;
+    public static ProfileSettings addProfile(String userName, String profileName, String filePath, String syncPath) throws IOException, ClassNotFoundException {
+        String profileSettingsPath = filePath + "/" + profileName;
 
-        ProfileSettings proSet = new ProfileSettings(profileSettingsPath, key);
+        ProfileSettings proSet = new ProfileSettings(userName, profileName, profileSettingsPath, syncPath);
         proSet.saveSettings();
 
-        settings.addProfilePath(profileName, path);
+        settings.addProfile(userName, syncPath, proSet);
         settings.saveSettings();
         return proSet;
+    }
+
+    public static ProfileSettings getProfileSettings(String userName) {
+        return settings.getProfileSettings(userName);
+    }
+
+    public static boolean checkProfileExsistence(String userName) {
+        return settings.ifExists(userName);
     }
 
     public Profile loadProfile(String fileName) throws FileNotFoundException, IOException, ClassNotFoundException {

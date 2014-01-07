@@ -11,6 +11,7 @@ import gnomezgrave.gsyncj.auth.Profile;
 import gnomezgrave.gsyncj.auth.ProfileSettings;
 import gnomezgrave.gsyncj.auth.Settings;
 import gnomezgrave.gsyncj.local.ProfileManagement;
+import gnomezgrave.gsyncj.local.Storage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,19 +32,20 @@ public class GSyncJ {
     private Settings settings;
     private String settingsPath;
     private String homePath;
+    private HashMap<String, Drive> profiles;
 
-    private HashMap<String, Profile> profiles;
+    private HashMap<String, ProfileSettings> profileSettings; // name,Profile
 
     public GSyncJ() {
+        profileSettings = new HashMap<>();
         profiles = new HashMap<>();
-
         try {
             homePath = getHomePath();
             settings = loadSettings();
         } catch (IOException ex) {
             Logger.getLogger(GSyncJ.class.getName()).log(Level.INFO, "New Settings Directory Created.", "");
             try {
-                String path = getSettingsPath();
+                String path = getSettingsPath(true);
                 Settings settings = new Settings(path);
 
                 Properties p = new Properties();
@@ -56,23 +58,18 @@ public class GSyncJ {
                     settingsFolder.mkdir();
                 }
                 saveSettings(settings, path);
-            } catch (IOException ex1) {
-                Logger.getLogger(GSyncJ.class.getName()).log(Level.SEVERE, null, ex1);
-            } catch (InterruptedException ex1) {
-                Logger.getLogger(GSyncJ.class.getName()).log(Level.SEVERE, null, ex1);
-            } catch (ClassNotFoundException ex1) {
+            } catch (IOException | ClassNotFoundException | InterruptedException ex1) {
                 Logger.getLogger(GSyncJ.class.getName()).log(Level.SEVERE, null, ex1);
             }
 
-        } catch (InterruptedException ex) {
-            Logger.getLogger(GSyncJ.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+        } catch (InterruptedException | ClassNotFoundException ex) {
             Logger.getLogger(GSyncJ.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     public Settings loadSettings() throws IOException, FileNotFoundException, InterruptedException, ClassNotFoundException {
-        settings = Settings.loadSettings(getSettingsPath());
+        settings = Settings.loadSettings(getSettingsPath(true));
+        profileSettings = settings.getProfileSettings();
         ProfileManagement.setSettings(settings);
         return settings;
     }
@@ -83,21 +80,45 @@ public class GSyncJ {
         Settings.saveSettings(settings, fileName);
     }
 
-    public void addProfile(String userName, String profileName, String key, String path) throws IOException, ClassNotFoundException {
-        ProfileSettings proSet = ProfileManagement.addProfile(profileName, key, path);
-        Drive drive = Authorization.getDrive(key);
-        Profile profile = new Profile(userName, profileName, drive);
-        profile.setProfileSettings(proSet);
-        profiles.put(profileName, profile);
+    public void saveSettings() throws IOException, ClassNotFoundException {
+        settings.saveSettings();
     }
 
-    private String getSettingsPath() throws FileNotFoundException, IOException, InterruptedException {
+    public Profile addProfile(String userName, String profileName, String syncPath, String key) throws IOException, ClassNotFoundException, FileNotFoundException, InterruptedException {
+        String path = getSettingsPath(false);
+        Drive drive = Authorization.getDrive(key);
+        profiles.put(userName, drive);
+        ProfileSettings proSet = ProfileManagement.addProfile(userName, profileName, path, syncPath);
+        Profile profile = new Profile(userName, profileName, drive);
+        profile.setProfileSettings(proSet);
+        profileSettings.put(profileName, proSet);
+        return profile;
+    }
+
+    public Drive getDrive(String userName) {
+        return profiles.get(userName);
+    }
+
+    public void setDrive(String userName, Drive drive) {
+        profiles.put(userName, drive);
+    }
+
+    public void synchronize(Drive drive, String userName) throws IOException {
+        String profilePath = settings.getProfilePath(userName);
+        new Storage().syncFiles(drive, profilePath);
+    }
+
+    public boolean checkProfileExsistence(String userName) {
+        return settings.ifExists(userName);
+    }
+
+    private String getSettingsPath(boolean isFullPath) throws FileNotFoundException, IOException, InterruptedException {
         Properties p = new Properties();
         p.load(new FileInputStream("settings.properties"));
         String folder = p.getProperty("settingsFolder").trim();
         String file = p.getProperty("settingsFile").trim();
 
-        settingsPath = homePath + "/" + folder + "/" + file;
+        settingsPath = homePath + "/" + folder + (isFullPath ? "/" + file : "");
         return settingsPath;
     }
 
@@ -112,11 +133,31 @@ public class GSyncJ {
     public static void main(String[] args) {
         try {
             GSyncJ g = new GSyncJ();
-            g.addProfile("Praneeth", "gnomez.grave@gmail.com", "4/9jljgEeBTJdUtZhz-B-pF34wyFmf.gnHc8sVOGC0bPvB8fYmgkJzl9zOMhgI", "/home/praneeth/Gmail");
-        } catch (IOException ex) {
-            Logger.getLogger(GSyncJ.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+
+            g.addProfile("Praneeth", "gnomez.grave@gmail.com", "/home/praneeth/G", "4/3KCTydkoLKptaJdBNQ052KWuZPsL.QspqsS9mtLAcPvB8fYmgkJyP5jS_hgI");
+        } catch (IOException | ClassNotFoundException | InterruptedException ex) {
             Logger.getLogger(GSyncJ.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    /**
+     * @return the settings
+     */
+    public Settings getSettings() {
+        return settings;
+    }
+
+    /**
+     * @return the profileSettings
+     */
+    public HashMap<String, ProfileSettings> getProfiles() {
+        return profileSettings;
+    }
+
+    /**
+     * @param profiles the profileSettings to set
+     */
+    public void setProfiles(HashMap<String, ProfileSettings> profiles) {
+        this.profileSettings = profiles;
     }
 }
