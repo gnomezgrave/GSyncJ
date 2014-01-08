@@ -32,13 +32,13 @@ public class GSyncJ {
     private Settings settings;
     private String settingsPath;
     private String homePath;
-    private HashMap<String, Drive> profiles;
+    private Storage storage;
 
-    private HashMap<String, ProfileSettings> profileSettings; // name,Profile
+    private HashMap<String, Profile> profiles; // name,Profile
 
     public GSyncJ() {
-        profileSettings = new HashMap<>();
         profiles = new HashMap<>();
+        storage = new Storage();
         try {
             homePath = getHomePath();
             settings = loadSettings();
@@ -69,7 +69,7 @@ public class GSyncJ {
 
     public Settings loadSettings() throws IOException, FileNotFoundException, InterruptedException, ClassNotFoundException {
         settings = Settings.loadSettings(getSettingsPath(true));
-        profileSettings = settings.getProfileSettings();
+        profiles = settings.getProfiles();
         ProfileManagement.setSettings(settings);
         return settings;
     }
@@ -85,27 +85,28 @@ public class GSyncJ {
     }
 
     public Profile addProfile(String userName, String profileName, String syncPath, String key) throws IOException, ClassNotFoundException, FileNotFoundException, InterruptedException {
-        String path = getSettingsPath(false);
         Drive drive = Authorization.getDrive(key);
-        profiles.put(userName, drive);
-        ProfileSettings proSet = ProfileManagement.addProfile(userName, profileName, path, syncPath);
-        Profile profile = new Profile(userName, profileName, drive);
-        profile.setProfileSettings(proSet);
-        profileSettings.put(profileName, proSet);
+        String path = getSettingsPath(false);
+        Profile profile = new Profile(userName, profileName, path, syncPath);
+        profile.setDrive(drive);
+        profiles.put(userName, profile);
+        profile.saveSettings();
+        settings.addProfile(userName, syncPath, profile);
+        settings.saveSettings();
         return profile;
     }
 
-    public Drive getDrive(String userName) {
+    public Profile getProfile(String userName) {
         return profiles.get(userName);
     }
 
-    public void setDrive(String userName, Drive drive) {
-        profiles.put(userName, drive);
+    public void setProfile(String userName, Profile profile) {
+        profiles.put(userName, profile);
     }
 
     public void synchronize(Drive drive, String userName) throws IOException {
         String profilePath = settings.getProfilePath(userName);
-        new Storage().syncFiles(drive, profilePath);
+        storage.syncFiles(drive, profilePath);
     }
 
     public boolean checkProfileExsistence(String userName) {
@@ -150,14 +151,11 @@ public class GSyncJ {
     /**
      * @return the profileSettings
      */
-    public HashMap<String, ProfileSettings> getProfiles() {
-        return profileSettings;
+    public HashMap<String, Profile> getProfiles() {
+        return profiles;
     }
 
-    /**
-     * @param profiles the profileSettings to set
-     */
-    public void setProfiles(HashMap<String, ProfileSettings> profiles) {
-        this.profileSettings = profiles;
+    public void setDrive(String userName, Drive drive) {
+        profiles.get(userName).setDrive(drive);
     }
 }

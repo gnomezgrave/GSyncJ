@@ -20,12 +20,12 @@ import java.util.HashMap;
 public class Settings implements Serializable {
 
     private HashMap<String, String> profilePaths;   // name,path
-    private HashMap<String, ProfileSettings> profileSettings;   // name,proSet
+    private HashMap<String, Profile> profiles;   // name,profile
     private String filePath;
 
     public Settings() {
         profilePaths = new HashMap<String, String>();
-        profileSettings = new HashMap<String, ProfileSettings>();
+        profiles = new HashMap<String, Profile>();
     }
 
     public Settings(String path) {
@@ -37,21 +37,21 @@ public class Settings implements Serializable {
         return profilePaths.get(userName);
     }
 
-    public void addProfile(String name, String path, ProfileSettings proSet) throws IOException, ClassNotFoundException {
-        profilePaths.put(name, path);
-        profileSettings.put(name, proSet);
+    public void addProfile(String userName, String path, Profile profile) throws IOException, ClassNotFoundException {
+        profilePaths.put(userName, path);
+        profiles.put(userName, profile);
         saveSettings();
     }
 
-    public ProfileSettings removeProfile(String userName) throws IOException, ClassNotFoundException {
+    public Profile removeProfile(String userName) throws IOException, ClassNotFoundException {
         profilePaths.remove(userName);
-        ProfileSettings remove = profileSettings.remove(userName);
+        Profile remove = profiles.remove(userName);
         saveSettings();
         return remove;
     }
 
-    public ProfileSettings getProfileSettings(String userName) {
-        return profileSettings.get(userName);
+    public Profile getProfileSettings(String userName) {
+        return profiles.get(userName);
     }
 
     public int getProfileCount() {
@@ -82,10 +82,10 @@ public class Settings implements Serializable {
     }
 
     /**
-     * @return the profileSettings
+     * @return the profiles
      */
-    public HashMap<String, ProfileSettings> getProfileSettings() {
-        return profileSettings;
+    public HashMap<String, Profile> getProfiles() {
+        return profiles;
     }
 
 }

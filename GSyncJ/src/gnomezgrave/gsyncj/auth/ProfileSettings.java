@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
 /**
  *
@@ -22,12 +24,14 @@ public class ProfileSettings implements Serializable {
     private String userName;
     private String profileName;
     private String syncPath;
+    private BidiMap<String, String> files; // fileID, path
 
     public ProfileSettings(String userName, String profileName, String filePath, String syncPath) {
         this.userName = userName;
         this.profileName = profileName;
         this.filePath = filePath;
         this.syncPath = syncPath;
+        files = new DualHashBidiMap<>();
     }
 
     public static ProfileSettings loadProfileSettings(String fileName) throws IOException, ClassNotFoundException {
@@ -61,5 +65,24 @@ public class ProfileSettings implements Serializable {
      */
     public String getSyncPath() {
         return syncPath;
+    }
+
+    /**
+     * @return the files
+     */
+    public BidiMap<String, String> getFiles() {
+        return files;
+    }
+
+    public String getPathByID(String id) {
+        return files.get(id);
+    }
+
+    public String getIDByPath(String path) {
+        return files.getKey(path);
+    }
+
+    public void addFile(String id, String path) {
+        files.put(id, path);
     }
 }

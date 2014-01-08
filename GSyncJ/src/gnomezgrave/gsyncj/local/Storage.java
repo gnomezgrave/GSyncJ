@@ -70,9 +70,9 @@ public class Storage {
                 for (ChildReference child : children.getItems()) {
                     try {
                         String id = child.getId();
-
+                        System.out.println("File Id: " + id);
                         com.google.api.services.drive.model.File file = drive.files().get(id).execute();
-                        //System.out.println("File Id: " + file.getMimeType() + "\t" + file.getFileExtension() + "\t" + file.getTitle());
+
                         String fileName = file.getTitle();
 
                         if (file.getMimeType().equals("application/vnd.google-apps.folder")) {

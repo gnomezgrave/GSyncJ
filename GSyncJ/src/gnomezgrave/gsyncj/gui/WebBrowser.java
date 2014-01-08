@@ -5,19 +5,41 @@
  */
 package gnomezgrave.gsyncj.gui;
 
+import java.awt.Dimension;
+
 /**
  *
  * @author praneeth
  */
 public class WebBrowser extends javax.swing.JDialog {
 
+    private SwingFXWebView swingFXWebView;
+    private MainWindow mw;
+    private boolean isProcessed;
+    private boolean isNewProfile;
+    private String key;
+
     /**
      * Creates new form WebBrowser
      */
-    public WebBrowser(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+    public WebBrowser(MainWindow mw, boolean modal, boolean isNewProfile, String url) {
+        super(mw, modal);
+        this.mw = mw;
+        this.isNewProfile = isNewProfile;
         initComponents();
-        //Browser browser = BrowserFactory.createBrowser(BrowserType.Mozilla);
+        swingFXWebView = new SwingFXWebView(mw, this, url);
+        swingFXWebView.createScene();
+        setMinimumSize(new Dimension(800, 600));
+        setLocationRelativeTo(mw);
+        jPanel1.add(swingFXWebView);
+    }
+
+    public void setProcessed(boolean state) {
+        isProcessed = state;
+    }
+
+    public void profileAdded(String key) {
+        this.key = key;
     }
 
     /**
@@ -29,64 +51,107 @@ public class WebBrowser extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        btnPanel = new javax.swing.JPanel();
+        btnHome = new javax.swing.JButton();
+        btnReload = new javax.swing.JButton();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        jPanel1.setLayout(new java.awt.BorderLayout());
+
+        btnHome.setText("Home");
+        btnHome.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHomeActionPerformed(evt);
+            }
+        });
+
+        btnReload.setText("Reload");
+        btnReload.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnReloadActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout btnPanelLayout = new javax.swing.GroupLayout(btnPanel);
+        btnPanel.setLayout(btnPanelLayout);
+        btnPanelLayout.setHorizontalGroup(
+            btnPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(btnPanelLayout.createSequentialGroup()
+                .addComponent(btnHome)
+                .addGap(7, 7, 7)
+                .addComponent(btnReload))
+        );
+        btnPanelLayout.setVerticalGroup(
+            btnPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(btnHome, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(btnReload, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 664, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(btnPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 500, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 532, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(btnPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 477, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(WebBrowser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(WebBrowser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(WebBrowser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(WebBrowser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+    private void btnReloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReloadActionPerformed
+        swingFXWebView.reload();
+    }//GEN-LAST:event_btnReloadActionPerformed
 
-        /* Create and display the dialog */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                WebBrowser dialog = new WebBrowser(new javax.swing.JFrame(), true);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
-            }
-        });
-    }
+    private void btnHomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHomeActionPerformed
+        swingFXWebView.reloadURL();
+    }//GEN-LAST:event_btnHomeActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnHome;
+    private javax.swing.JPanel btnPanel;
+    private javax.swing.JButton btnReload;
+    private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
+
+    /**
+     * @return the isNewProfile
+     */
+    public boolean isIsNewProfile() {
+        return isNewProfile;
+    }
+
+    /**
+     * @param isNewProfile the isNewProfile to set
+     */
+    public void setIsNewProfile(boolean isNewProfile) {
+        this.isNewProfile = isNewProfile;
+    }
+
+    /**
+     * @return the isProcessed
+     */
+    public boolean isProcessed() {
+        return isProcessed;
+    }
+
+    /**
+     * @return the key
+     */
+    public String getKey() {
+        return key;
+    }
+
+
 }

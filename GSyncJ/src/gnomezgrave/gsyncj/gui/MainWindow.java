@@ -7,6 +7,7 @@ package gnomezgrave.gsyncj.gui;
 
 import com.google.api.services.drive.Drive;
 import gnomezgrave.gsyncj.auth.Authorization;
+import gnomezgrave.gsyncj.auth.Profile;
 import gnomezgrave.gsyncj.auth.ProfileSettings;
 import gnomezgrave.gsyncj.local.Storage;
 import gsyncj.GSyncJ;
@@ -28,6 +29,7 @@ public class MainWindow extends javax.swing.JFrame {
     private Storage storage;
     private DefaultListModel dlm;
     private boolean isSyncing;
+    private String code;
 
     /**
      * Creates new form MainWindow
@@ -54,6 +56,49 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void updateLog(String msg) {
         edLog.setText(edLog.getText() + msg + "\n");
+    }
+
+    public void authReceieved(String code) {
+        this.code = code;
+        System.out.println("Syncing");
+        String userName = lstProfiles.getSelectedValue().toString();
+        startSync(code);
+    }
+
+    private void startSync(String value) {
+        final String userName = lstProfiles.getSelectedValue().toString();
+        if (userName != null && !userName.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
+            try {
+                final Drive drive = Authorization.getDrive(value);
+                gSyncJ.setDrive(userName, drive);
+                sync(userName, drive);
+
+            } catch (IOException ex) {
+                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    private void sync(final String userName, final Drive drive) {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    isSyncing = true;
+                    lblBusy.setBusy(isSyncing);
+                    updateLog("Syncing started for : " + userName);
+                    gSyncJ.synchronize(drive, userName);
+                    updateLog("Syncing finished for : " + userName);
+                    isSyncing = false;
+                    lblBusy.setBusy(isSyncing);
+                } catch (IOException ex) {
+                    Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+                    isSyncing = false;
+                    lblBusy.setBusy(isSyncing);
+                }
+            }
+        };
+        t.start();
     }
 
     /**
@@ -205,7 +250,9 @@ public class MainWindow extends javax.swing.JFrame {
         if (np.profile != null) {
             try {
                 final String userName = np.profile.getUserName();
+                System.out.println("User Name " + userName);
                 final String profilePath = gSyncJ.getSettings().getProfilePath(userName);
+                gSyncJ.setDrive(userName, np.profile.getDrive());
                 ((DefaultListModel) lstProfiles.getModel()).addElement(userName);
 
                 Thread t = new Thread() {
@@ -240,7 +287,7 @@ public class MainWindow extends javax.swing.JFrame {
             if (res == JOptionPane.YES_OPTION) {
                 try {
                     String userName = lstProfiles.getSelectedValue().toString();
-                    ProfileSettings removedProfile = gSyncJ.getSettings().removeProfile(userName);
+                    Profile removedProfile = gSyncJ.getSettings().removeProfile(userName);
                     res = JOptionPane.showConfirmDialog(MainWindow.this, "Do you want to remove synchorized folder as well?", "Remove Synchronized Folder", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                     if (res == JOptionPane.YES_OPTION) {
                         File f = new File(removedProfile.getSyncPath());
@@ -255,36 +302,17 @@ public class MainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_btnRemoevActionPerformed
 
     private void btnSyncActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSyncActionPerformed
-        String value = JOptionPane.showInputDialog(MainWindow.this, "Enter the secret key for the profile.", "Secret Key", JOptionPane.INFORMATION_MESSAGE);
-        final String userName = lstProfiles.getSelectedValue().toString();
-        if (userName != null && !userName.trim().isEmpty() && value != null && !value.trim().isEmpty()) {
-            try {
-                final Drive drive = Authorization.getDrive(value);
-                gSyncJ.setDrive(userName, drive);
-                Thread t = new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            isSyncing = true;
-                            lblBusy.setBusy(isSyncing);
-                            updateLog("Syncing started for : " + userName);
-                            gSyncJ.synchronize(drive, userName);
-                            updateLog("Syncing finished for : " + userName);
-                            isSyncing = false;
-                            lblBusy.setBusy(isSyncing);
-                        } catch (IOException ex) {
-                            Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
-                            isSyncing = false;
-                            lblBusy.setBusy(isSyncing);
-                        }
-                    }
-                };
-                t.start();
-
-            } catch (IOException ex) {
-                Logger.getLogger(MainWindow.class.getName()).log(Level.SEVERE, null, ex);
+        if (lstProfiles.getSelectedIndex() != -1) {
+            String userName = lstProfiles.getSelectedValue().toString();
+            Drive drive = gSyncJ.getProfile(userName).getDrive();
+            if (drive == null) {
+                WebBrowser webBrowser = new WebBrowser(this, true, false, Authorization.getAuthURL());
+                webBrowser.setVisible(true);
+            } else {
+                sync(userName, drive);
             }
         }
+
     }//GEN-LAST:event_btnSyncActionPerformed
 
     /**

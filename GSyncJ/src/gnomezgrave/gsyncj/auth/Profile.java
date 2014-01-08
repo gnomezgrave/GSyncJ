@@ -6,11 +6,15 @@
 package gnomezgrave.gsyncj.auth;
 
 import com.google.api.services.drive.Drive;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 
 /**
  *
@@ -18,29 +22,52 @@ import java.io.Serializable;
  */
 public class Profile implements Serializable {
 
-    private Drive drive;
+    private volatile Drive drive;
     private String profileName;
     private String userName;
-    private ProfileSettings profileSettings;
+    private String filePath;
+    private String syncPath;
+    private BidiMap<String, String> files; // fileID, path
 
-    public Profile(String userName, String profileName, Drive drive) {
+    public Profile(String userName, String profileName, String filePath, String syncPath) {
         this.userName = userName;
         this.profileName = profileName;
-        this.drive = drive;
+        this.filePath = filePath + "/" + profileName;
+        this.syncPath = syncPath;
+        files = new DualHashBidiMap<>();
     }
 
-    public void sync() {
-
+    public BidiMap<String, String> getFiles() {
+        return files;
     }
 
-    public void loadProfileSettings(String fileName) throws IOException, ClassNotFoundException {
-        profileSettings = ProfileSettings.loadProfileSettings(fileName);
+    public String getPathByID(String id) {
+        return files.get(id);
     }
 
-    public void saveProfileSettings(ProfileSettings profileSettings, String fileName) throws FileNotFoundException, IOException {
+    public String getIDByPath(String path) {
+        return files.getKey(path);
+    }
+
+    public void addFile(String id, String path) {
+        files.put(id, path);
+    }
+
+    public static Profile loadProfileSettings(String fileName) throws IOException, ClassNotFoundException {
+        ObjectInputStream oi = new ObjectInputStream(new FileInputStream(fileName));
+        Profile profile = (Profile) oi.readObject();
+        oi.close();
+        return profile;
+    }
+
+    public static void saveSettings(Profile profile, String fileName) throws IOException, ClassNotFoundException {
         ObjectOutputStream oo = new ObjectOutputStream(new FileOutputStream(fileName));
-        oo.writeObject(profileSettings);
+        oo.writeObject(profile);
         oo.close();
+    }
+
+    public void saveSettings() throws IOException, ClassNotFoundException {
+        saveSettings(this, filePath);
     }
 
     /**
@@ -51,24 +78,31 @@ public class Profile implements Serializable {
     }
 
     /**
-     * @return the driveSettings
-     */
-    public ProfileSettings getProfileSettings() {
-        return profileSettings;
-    }
-
-    /**
-     * @param profileSettings the driveSettings to set
-     */
-    public void setProfileSettings(ProfileSettings profileSettings) {
-        this.profileSettings = profileSettings;
-    }
-
-    /**
      * @return the drive
      */
     public Drive getDrive() {
         return drive;
+    }
+
+    /**
+     * @param drive the drive to set
+     */
+    public void setDrive(Drive drive) {
+        this.drive = drive;
+    }
+
+    /**
+     * @return the syncPath
+     */
+    public String getSyncPath() {
+        return syncPath;
+    }
+
+    /**
+     * @param syncPath the syncPath to set
+     */
+    public void setSyncPath(String syncPath) {
+        this.syncPath = syncPath;
     }
 
 }

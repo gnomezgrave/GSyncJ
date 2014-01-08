@@ -6,7 +6,6 @@
 package gnomezgrave.gsyncj.local;
 
 import gnomezgrave.gsyncj.auth.Profile;
-import gnomezgrave.gsyncj.auth.ProfileSettings;
 import gnomezgrave.gsyncj.auth.Settings;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,18 +22,18 @@ public class ProfileManagement {
 
     private static Settings settings;
 
-    public static ProfileSettings addProfile(String userName, String profileName, String filePath, String syncPath) throws IOException, ClassNotFoundException {
+    public static Profile addProfile(String userName, String profileName, String filePath, String syncPath) throws IOException, ClassNotFoundException {
         String profileSettingsPath = filePath + "/" + profileName;
 
-        ProfileSettings proSet = new ProfileSettings(userName, profileName, profileSettingsPath, syncPath);
-        proSet.saveSettings();
+        Profile profile = new Profile(userName, profileName, profileSettingsPath, syncPath);
+        profile.saveSettings();
 
-        settings.addProfile(userName, syncPath, proSet);
+        settings.addProfile(userName, syncPath, profile);
         settings.saveSettings();
-        return proSet;
+        return profile;
     }
 
-    public static ProfileSettings getProfileSettings(String userName) {
+    public static Profile getProfileSettings(String userName) {
         return settings.getProfileSettings(userName);
     }
 

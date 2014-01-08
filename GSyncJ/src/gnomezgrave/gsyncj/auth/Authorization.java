@@ -45,4 +45,16 @@ public class Authorization {
         //Create a new authorized API client
         return new Drive.Builder(httpTransport, jsonFactory, credential).build();
     }
+
+    public static String getAuthURL() {
+        HttpTransport httpTransport = new NetHttpTransport();
+        JsonFactory jsonFactory = new JacksonFactory();
+
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                httpTransport, jsonFactory, CLIENT_ID, CLIENT_SECRET, Arrays.asList(DriveScopes.DRIVE))
+                .setAccessType("online")
+                .setApprovalPrompt("auto").build();
+
+        return flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URI).build();
+    }
 }

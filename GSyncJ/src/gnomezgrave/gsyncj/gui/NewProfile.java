@@ -6,6 +6,7 @@
 package gnomezgrave.gsyncj.gui;
 
 import com.google.api.services.drive.Drive;
+import gnomezgrave.gsyncj.auth.Authorization;
 import gnomezgrave.gsyncj.auth.Profile;
 import gnomezgrave.gsyncj.local.ProfileManagement;
 import gsyncj.GSyncJ;
@@ -20,20 +21,23 @@ import javax.swing.JOptionPane;
  * @author praneeth
  */
 public class NewProfile extends javax.swing.JDialog {
-
+    
     private GSyncJ gSyncJ;
     Profile profile;
+    private MainWindow mainWindow;
 
     /**
      * Creates new form NewProfile
      *
      * @param parent
      * @param modal
+     * @param gSyncJ
      */
-    public NewProfile(java.awt.Frame parent, boolean modal, GSyncJ gSyncJ) {
+    public NewProfile(MainWindow parent, boolean modal, GSyncJ gSyncJ) {
         super(parent, modal);
         initComponents();
         this.gSyncJ = gSyncJ;
+        this.mainWindow = parent;
         setLocationRelativeTo(parent);
     }
 
@@ -154,13 +158,13 @@ public class NewProfile extends javax.swing.JDialog {
 
     private void btnOKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOKActionPerformed
         String userName = txtUserName.getText().trim();
-
+        
         if (ProfileManagement.checkProfileExsistence(userName)) {
             JOptionPane.showMessageDialog(NewProfile.this, "Profile already exists. Please enter another user name.", "Profile Already Exists", JOptionPane.ERROR_MESSAGE);
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Profile {0} already exists.", userName);
         } else {
             String profileName = txtProfileName.getText().trim();
-
+            
             String path = txtPath.getText().trim();
             File f = new File(path);
             boolean isValid = false;
@@ -172,7 +176,7 @@ public class NewProfile extends javax.swing.JDialog {
                     } else {
                         isValid = true;
                     }
-
+                    
                     if (!f.canWrite()) {
                         isValid = false;
                         JOptionPane.showMessageDialog(NewProfile.this, "Sync Folder is read-only. Please enter another path.", "Sync Folder is read-only", JOptionPane.ERROR_MESSAGE);
@@ -190,22 +194,22 @@ public class NewProfile extends javax.swing.JDialog {
                 }
             }
             if (isValid) {
-                String value = JOptionPane.showInputDialog(NewProfile.this, "Enter the secret key for the profile.", "Secret Key", JOptionPane.INFORMATION_MESSAGE);
-                if (value != null && !value.trim().isEmpty()) {
+                WebBrowser webBrowser = new WebBrowser(mainWindow, true, true, Authorization.getAuthURL());
+                webBrowser.setVisible(true);
+                if (webBrowser.isProcessed()) {
                     try {
+                        String value = webBrowser.getKey();
                         profile = gSyncJ.addProfile(userName, profileName, path, value);
                         setVisible(false);
-                    } catch (IOException | ClassNotFoundException | InterruptedException ex) {
+                    } catch (IOException ex) {
                         Logger.getLogger(NewProfile.class.getName()).log(Level.SEVERE, null, ex);
-                        try {
-                            gSyncJ.getSettings().removeProfile(userName);
-                        } catch (IOException ex1) {
-                            Logger.getLogger(NewProfile.class.getName()).log(Level.SEVERE, null, ex1);
-                        } catch (ClassNotFoundException ex1) {
-                            Logger.getLogger(NewProfile.class.getName()).log(Level.SEVERE, null, ex1);
-                        }
+                    } catch (ClassNotFoundException ex) {
+                        Logger.getLogger(NewProfile.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(NewProfile.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                
             }
         }
     }//GEN-LAST:event_btnOKActionPerformed
